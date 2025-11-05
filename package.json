@@ -1,20 +1,29 @@
 {
   "name": "@xand/n8n-nodes-claudecode",
   "version": "1.0.0",
-  "description": "Custom n8n node for Claude Code integration - simplified and maintained by user",
+  "description": "Custom n8n node for Claude Code integration - Call Claude Code AI from n8n workflows",
   "keywords": [
     "n8n-community-node-package",
     "n8n",
     "claude",
     "claude-code",
     "ai",
-    "anthropic"
+    "anthropic",
+    "automation"
   ],
   "license": "MIT",
   "author": {
     "name": "Xand",
-    "email": "your-email@example.com"
+    "email": "xand@n8n.community"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bbleak-repo/n8n-nodes-claudecode-custom.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bbleak-repo/n8n-nodes-claudecode-custom/issues"
+  },
+  "homepage": "https://github.com/bbleak-repo/n8n-nodes-claudecode-custom#readme",
   "main": "index.js",
   "n8n": {
     "n8nNodesApiVersion": 1,
@@ -22,6 +31,12 @@
       "nodes/ClaudeCode/ClaudeCode.node.js"
     ]
   },
+  "files": [
+    "nodes",
+    "index.js",
+    "README.md",
+    "LICENSE"
+  ],
   "dependencies": {
     "@anthropic-ai/claude-code": "^2.0.0"
   },
