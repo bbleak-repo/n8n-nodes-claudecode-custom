@@ -7,8 +7,8 @@ const path = require('path');
 class ClaudeCode {
     constructor() {
         this.description = {
-            displayName: 'Claude Code (Custom)',
-            name: 'claudeCodeCustom',
+            displayName: 'Claude Code',
+            name: 'claudeCode',
             icon: 'fa:robot',
             group: ['transform'],
             version: 1,
