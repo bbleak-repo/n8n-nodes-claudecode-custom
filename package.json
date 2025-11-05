@@ -1,0 +1,34 @@
+{
+  "name": "@xand/n8n-nodes-claudecode",
+  "version": "1.0.0",
+  "description": "Custom n8n node for Claude Code integration - simplified and maintained by user",
+  "keywords": [
+    "n8n-community-node-package",
+    "n8n",
+    "claude",
+    "claude-code",
+    "ai",
+    "anthropic"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Xand",
+    "email": "your-email@example.com"
+  },
+  "main": "index.js",
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "nodes": [
+      "nodes/ClaudeCode/ClaudeCode.node.js"
+    ]
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-code": "^0.7.1"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
