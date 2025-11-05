@@ -187,10 +187,13 @@ class ClaudeCode {
                 args.push('--max-turns', options.maxTurns.toString());
             }
 
+            // Find claude CLI path
+            const claudePath = path.join(__dirname, '../../node_modules/.bin/claude');
+
             // Spawn claude process
-            const claude = spawn('claude', args, {
+            const claude = spawn(claudePath, args, {
                 env: process.env,
-                shell: true,
+                shell: false,
             });
 
             let stdout = '';
