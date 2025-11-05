@@ -1,4 +1,8 @@
-const { query } = require('@anthropic-ai/claude-code');
+const { spawn } = require('child_process');
+const { promisify } = require('util');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
 class ClaudeCode {
     constructor() {
@@ -111,32 +115,14 @@ class ClaudeCode {
                     const timeout = this.getNodeParameter('timeout', i);
                     const outputFormat = this.getNodeParameter('outputFormat', i);
 
-                    // Create abort controller for timeout
-                    const abortController = new AbortController();
-                    const timeoutId = setTimeout(() => abortController.abort(), timeout * 1000);
-
                     const startTime = Date.now();
-                    let result = '';
-                    const messages = [];
 
-                    try {
-                        // Call Claude Code query
-                        const stream = query(prompt, {
-                            model,
-                            maxTurns,
-                            abort: abortController.signal,
-                        });
-
-                        // Collect messages from stream
-                        for await (const message of stream) {
-                            messages.push(message);
-                            if (message.text) {
-                                result += message.text;
-                            }
-                        }
-                    } finally {
-                        clearTimeout(timeoutId);
-                    }
+                    // Call Claude CLI
+                    const result = await this.callClaudeCLI(prompt, {
+                        model,
+                        maxTurns,
+                        timeout: timeout * 1000, // Convert to ms
+                    });
 
                     const duration = Date.now() - startTime;
 
@@ -150,7 +136,6 @@ class ClaudeCode {
                         };
                     } else if (outputFormat === 'messages') {
                         output = {
-                            messages: messages,
                             result: result,
                             duration: duration,
                             model: model,
@@ -158,7 +143,6 @@ class ClaudeCode {
                     } else {
                         output = {
                             result: result,
-                            messages: messages,
                             duration: duration,
                             model: model,
                             prompt: prompt,
@@ -187,6 +171,64 @@ class ClaudeCode {
         }
 
         return [returnData];
+    }
+
+    async callClaudeCLI(prompt, options = {}) {
+        return new Promise((resolve, reject) => {
+            const args = [];
+
+            // Add model option
+            if (options.model) {
+                args.push('--model', options.model);
+            }
+
+            // Add max turns option
+            if (options.maxTurns) {
+                args.push('--max-turns', options.maxTurns.toString());
+            }
+
+            // Spawn claude process
+            const claude = spawn('claude', args, {
+                env: process.env,
+                shell: true,
+            });
+
+            let stdout = '';
+            let stderr = '';
+
+            claude.stdout.on('data', (data) => {
+                stdout += data.toString();
+            });
+
+            claude.stderr.on('data', (data) => {
+                stderr += data.toString();
+            });
+
+            // Set timeout
+            const timeoutId = setTimeout(() => {
+                claude.kill('SIGTERM');
+                reject(new Error(`Claude Code timed out after ${options.timeout}ms`));
+            }, options.timeout || 60000);
+
+            claude.on('close', (code) => {
+                clearTimeout(timeoutId);
+
+                if (code !== 0 && code !== null) {
+                    reject(new Error(`Claude Code exited with code ${code}: ${stderr}`));
+                } else {
+                    resolve(stdout.trim());
+                }
+            });
+
+            claude.on('error', (error) => {
+                clearTimeout(timeoutId);
+                reject(new Error(`Failed to start Claude Code: ${error.message}`));
+            });
+
+            // Send prompt to stdin
+            claude.stdin.write(prompt + '\n');
+            claude.stdin.end();
+        });
     }
 }
 
