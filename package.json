@@ -23,7 +23,7 @@
     ]
   },
   "dependencies": {
-    "@anthropic-ai/claude-code": "^0.7.1"
+    "@anthropic-ai/claude-code": "^2.0.0"
   },
   "peerDependencies": {
     "n8n-workflow": "*"
