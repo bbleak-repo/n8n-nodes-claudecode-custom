@@ -117,67 +117,46 @@ class ClaudeCode {
 
                     const startTime = Date.now();
 
-                    // Generate analysis directly inline to avoid context issues
-                    const timestamp = new Date().toISOString();
+                    // Actually call Claude Code CLI
+                    const result = await new Promise((resolve, reject) => {
+                        const args = [
+                            '-p', prompt,
+                            '--output-format', 'text',
+                            '--max-turns', String(maxTurns),
+                            '--model', model
+                        ];
 
-                    // Parse the prompt to extract key information
-                    const lines = prompt.split('\n');
-                    let website = '';
-                    let error = '';
-                    let containers = '';
+                        const child = spawn('claude', args, {
+                            timeout: timeout * 1000,
+                            env: {
+                                ...process.env,
+                                HOME: process.env.HOME || '/home/node'
+                            }
+                        });
 
-                    lines.forEach(line => {
-                        if (line.includes('Website URL:')) {
-                            website = line.split('Website URL:')[1]?.trim() || '';
-                        }
-                        if (line.includes('Error:')) {
-                            error = line.split('Error:')[1]?.trim() || '';
-                        }
-                        if (line.includes('Container:')) {
-                            containers += line + '\n';
-                        }
+                        let stdout = '';
+                        let stderr = '';
+
+                        child.stdout.on('data', (data) => {
+                            stdout += data.toString();
+                        });
+
+                        child.stderr.on('data', (data) => {
+                            stderr += data.toString();
+                        });
+
+                        child.on('close', (code) => {
+                            if (code === 0) {
+                                resolve(stdout.trim());
+                            } else {
+                                reject(new Error(`Claude Code exited with code ${code}: ${stderr}`));
+                            }
+                        });
+
+                        child.on('error', (err) => {
+                            reject(new Error(`Failed to spawn Claude Code: ${err.message}. Make sure 'claude' CLI is installed and in PATH.`));
+                        });
                     });
-
-                    // Generate a structured response
-                    const result = `# Analysis Report
-Generated: ${timestamp}
-Model: claude-${model}
-
-## 1. ROOT CAUSE ANALYSIS
-
-**What happened:**
-The website at ${website || 'http://localhost:8090'} is unreachable.
-
-**Error detected:**
-${error || 'Connection failed'}
-
-**Container Status:**
-${containers ? 'Containers detected in logs.' : 'No container information available.'}
-
-## 2. IMMEDIATE FIX
-
-**Recommended steps:**
-1. Check if the web-container is running:
-   \`docker ps | grep web-container\`
-
-2. If not running, restart it:
-   \`docker start web-container\`
-
-3. Check container logs for errors:
-   \`docker logs --tail 50 web-container\`
-
-4. Verify port binding:
-   \`docker port web-container\`
-
-## 3. PREVENTION
-
-- Configure automatic container restart: \`--restart unless-stopped\`
-- Implement health checks in docker-compose
-- Set up monitoring alerts for container failures
-- Regular backup of container configurations
-
----
-Note: This is a simplified analysis. For full Claude Code functionality, ensure the Claude Code CLI is properly configured.`;
 
                     const duration = Date.now() - startTime;
 

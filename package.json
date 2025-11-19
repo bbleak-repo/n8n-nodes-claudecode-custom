@@ -1,6 +1,6 @@
 {
   "name": "@xandrennus/n8n-nodes-claudecode",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Custom n8n node for Claude Code integration - Call Claude Code AI from n8n workflows",
   "keywords": [
     "n8n-community-node-package",
